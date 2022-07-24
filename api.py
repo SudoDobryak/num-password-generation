@@ -1,7 +1,6 @@
 import hashlib
 import uvicorn
 from fastapi import FastAPI
-from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -18,18 +17,21 @@ class Item(BaseModel):
     lenght_salt: int
 
 
-somedata = {'labels': '1labels', 'sequences': '1sequences'}
-for_hash = somedata.get('labels')
+somedata = {'code': '1labels', 'salt': '1sequences', 'hash': 'fwefqsdx'}
+for_hash = somedata.get('code')
 hash_object = hashlib.sha1(for_hash.encode()).hexdigest()
+somedata['hash'] = hash_object
 
 
-@app.get('/getapi')
-def get():
-    return somedata
+#@app.get('/getapi')
+#def get():
+#    return somedata
+
 
 @app.get("/items/{item_id}")
 async def read_item(item_id):
     return {"item_id": item_id}
+
 
 @app.get("/items/")
 async def read_item(skip, limit: int = 10):
@@ -40,12 +42,8 @@ async def read_item(skip, limit: int = 10):
 
 
 @app.post('/postapi')
-def post(item: Item, response_model=Answer):
-    return {
-        "code": "code",
-        "salt": "salt",
-        "hash": "hash"
-    }
+def post(answer=Answer):
+    return answer
 
 
 if __name__ == '__main__':

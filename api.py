@@ -2,6 +2,7 @@ import hashlib
 import uvicorn
 from fastapi import FastAPI
 from pydantic import BaseModel
+import random
 
 app = FastAPI()
 
@@ -17,10 +18,21 @@ class Item(BaseModel):
     lenght_salt: int
 
 
+def generate_password(length):
+    chars = list('+-/*!&$#?=w@<>abcdefghijklnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890')
+    random.shuffle(chars)
+    pasw = ''.join([random.choice(chars) for x in range(length)])
+    return pasw
+
+
+def hash_func(data):
+    hash_object = hashlib.sha1(data.encode()).hexdigest()
+    return hash_object
+
+
 somedata = {'code': '1labels', 'salt': '1sequences', 'hash': 'fwefqsdx'}
-for_hash = somedata.get('code')
-hash_object = hashlib.sha1(for_hash.encode()).hexdigest()
-somedata['hash'] = hash_object
+
+
 
 
 #@app.get('/getapi')
@@ -41,8 +53,15 @@ async def read_item(skip, limit: int = 10):
     }
 
 
-@app.post('/postapi')
-def post(answer=Answer):
+@app.post('/postapi', response_model=Answer)
+def post(answer: Answer):
+    try:
+        answer.code = generate_password(8)
+        answer.salt = hash_func(generate_password(5))
+        answer.hash = hash_func(answer.code) + answer.salt
+    except Exception as exc:
+        print(exc)
+
     return answer
 
 

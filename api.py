@@ -52,16 +52,25 @@ async def read_item(skip, limit: int = 10):
         "limit": limit
     }
 
-
+'''
+Тут необходимо принимать на входе объект Item, в нем параметры длины пароля и "соли".
+Answer это модель которая будет ответом(response_model), её в параметрах функции post не нужно указывать.
+'''
 @app.post('/postapi', response_model=Answer)
-def post(answer: Answer):
-    try:
-        answer.code = generate_password(8)
-        answer.salt = hash_func(generate_password(5))
-        answer.hash = hash_func(answer.code) + answer.salt
-    except Exception as exc:
-        print(exc)
+def post(item: Item):
+    # Генерируем код, соль и хэш
+    # В качестве параметров берем значения из объекта item, который наша функция принимает в качестве параметра
+    code = generate_password(item.lenght_code)
+    salt = hash_func(generate_password(item.lenght_salt))
+    
+    # Хэш из строки код + соль 
+    hash = hash_func(code + salt)
+    
+    # Создаем объект класса Answer
+    answer = Answer(code=code, salt=salt, hash=hash)
 
+    # Возвращаем объект
+    # FastAPI вернет его в виде JSON
     return answer
 
 
